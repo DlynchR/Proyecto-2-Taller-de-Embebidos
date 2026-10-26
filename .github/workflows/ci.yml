@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Pruebas de la aplicación (con simulador de Ollama)
+        run: make test
+      - name: Benchmark de casos de uso (simulador)
+        run: make bench
+      - name: Sintaxis y shellcheck
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          make lint
+      - name: Lint de recetas Yocto
+        run: |
+          pip install oelint-adv
+          oelint-adv --quiet --relpaths --hide info \
+            --suppress oelint.var.mandatoryvar.HOMEPAGE \
+            --suppress oelint.var.mandatoryvar.BUGTRACKER \
+            --suppress oelint.var.mandatoryvar.AUTHOR \
+            --suppress oelint.var.mandatoryvar.SECTION \
+            --suppress oelint.var.mandatoryvar.CVE_PRODUCT \
+            $(find meta-edgeai -name '*.bb' -o -name '*.bbappend') || true
+
+  images:
+    needs: app
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, edgeai-yocto]
+    timeout-minutes: 1440
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          clean: false
+          persist-credentials: false
+      - name: Preparar cache persistente
+        env:
+          CACHE_OVERRIDE: ${{ vars.EDGEAI_CACHE_DIR }}
+        run: |
+          cache_dir="${CACHE_OVERRIDE:-${EDGEAI_CACHE_DIR:-$HOME/.cache/edgeai}}"
+          mkdir -p "$cache_dir"
+          printf 'EDGEAI_CACHE_DIR=%s\nSOURCES_DIR=%s\n' "$cache_dir" "$cache_dir/edgeai-sources" >> "$GITHUB_ENV"
+      - name: Comprobar configuracion de la imagen
+        run: test -f edgeai-secrets.conf
+      - name: Modelos, QEMU, pruebas y Raspberry Pi
+        run: |
+          mkdir -p logs
+          set -o pipefail
+          ./scripts/build-all.sh 2>&1 | tee "logs/build-${GITHUB_SHA}.log"
+      - name: Publicar imagen QEMU
+        uses: actions/upload-artifact@v4
+        with:
+          name: edgeai-qemuarm64-${{ github.sha }}
+          path: artifacts/qemuarm64/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Publicar imagen Raspberry Pi
+        uses: actions/upload-artifact@v4
+        with:
+          name: edgeai-raspberrypi4-64-${{ github.sha }}
+          path: artifacts/raspberrypi4-64/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Conservar diagnostico
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: edgeai-logs-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            logs/
+            build/qemuarm64/tmp/log/oeqa/
+          retention-days: 7
