@@ -52,3 +52,25 @@ el dispositivo con `lsblk`.
 Para reutilizar capas wrynose existentes sin modificarlas, establezca
 `SOURCES_DIR` y `EDGEAI_CACHE_DIR` en `edgeai-build.env`, y ejecute
 `./scripts/setup-build.sh --existing`. Este archivo local no se versiona.
+
+## Pruebas con QEMU
+
+```bash
+MACHINE=qemuarm64 ./scripts/setup-build.sh
+MACHINE=qemuarm64 ./scripts/build-image.sh
+./scripts/test-qemu.sh
+./scripts/run-qemu.sh
+```
+
+Esta variante usa un simulador de Ollama y no incluye las credenciales Wi-Fi
+ni los modelos precargados. Las pruebas de Yocto comprueban los servicios,
+la API, la persistencia de un tiquete tras reiniciar y el benchmark simulado.
+No sustituyen las pruebas de inferencia ni del hardware de Raspberry Pi.
+
+El arranque manual expone la web en `http://127.0.0.1:8080` y SSH en el puerto
+local 2222. Ambos puertos deben estar libres. La imagen permite acceso root
+sin clave y debe usarse solo en la red virtual aislada. En hosts x86_64 se
+emula ARM64 sin aceleracion KVM.
+
+Los resultados quedan en `build/qemuarm64/tmp/deploy/images/qemuarm64/`:
+kernel, sistema de archivos ext4 y configuracion de arranque QEMU.

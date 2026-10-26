@@ -19,7 +19,7 @@ for argument in "$@"; do
     esac
 done
 case "$MACHINE" in
-    raspberrypi4-64) ;;
+    raspberrypi4-64|qemuarm64) ;;
     *) die "MACHINE no soportada: $MACHINE" ;;
 esac
 

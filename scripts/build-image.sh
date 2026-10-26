@@ -20,6 +20,11 @@ mins=$(( ($(date +%s) - start) / 60 ))
 info "Terminado en ${mins} min"
 
 if [ "$TARGET" = "$IMAGE" ]; then
+    if [[ "$MACHINE" == qemuarm64 ]]; then
+        info "Imagen QEMU: $(deploy_dir)"
+        info "Pruebas: MACHINE=qemuarm64 ./scripts/test-qemu.sh"
+        exit 0
+    fi
     wic="$(latest_wic)"
     [ -n "$wic" ] || die "No se encontró la imagen .wic.bz2 en $(deploy_dir)"
     info "Imagen: $wic"

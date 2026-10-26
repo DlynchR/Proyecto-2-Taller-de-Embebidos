@@ -21,10 +21,12 @@ RDEPENDS:${PN}-tools = "\
     curl \
     iw \
     less \
-    linux-firmware-rpidistro-bcm43455 \
     procps \
     sqlite3 \
     tzdata \
     util-linux \
     vim-tiny \
 "
+
+RDEPENDS:${PN}-tools:append:raspberrypi4-64 = " linux-firmware-rpidistro-bcm43455"
+RDEPENDS:${PN}:append:qemuarm64 = " edgeai-qemu-tests"

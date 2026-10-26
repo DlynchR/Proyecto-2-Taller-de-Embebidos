@@ -17,6 +17,8 @@ inherit allarch
 EDGEAI_WIFI_SSID ??= ""
 EDGEAI_WIFI_PSK ??= ""
 EDGEAI_WIFI_COUNTRY ??= "CR"
+EDGEAI_WIFI_SSID:qemuarm64 = ""
+EDGEAI_WIFI_PSK:qemuarm64 = ""
 
 python do_install() {
     import hashlib
