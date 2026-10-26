@@ -274,6 +274,15 @@ MACHINE=qemuarm64 ./scripts/build-image.sh
 `test-qemu.sh` utiliza el framework `testimage` de Yocto con red SLIRP, sin crear
 interfaces TAP ni requerir sudo. Comprueba SSH, servicios, autoprueba, web/API,
 creación de un tiquete, persistencia tras reiniciar el sistema y benchmark simulado.
+En QEMU se usa `edgeai-admin autoprueba --sin-leds`: solo omite la comprobación
+de LEDs físicos; la configuración, base de datos, Ollama y modelos siguen siendo
+obligatorios. En la Raspberry Pi, `edgeai-admin autoprueba` conserva todas las
+comprobaciones de hardware. Las pruebas esperan que la API responda tras reiniciar.
+
+El descubrimiento de `do_testimage` para QEMU se limita a OE-Core y `meta-edgeai`.
+Las capas de compilación no cambian; las pruebas de hardware de `meta-raspberrypi`
+no se importan para el emulador. El formato de arranque se fija en `ext4`, igual
+que el sistema de archivos generado.
 
 `run-qemu.sh` expone la web en `http://127.0.0.1:8080` y SSH en el puerto local 2222.
 Ambos puertos deben estar libres. La imagen QEMU permite entrar como root sin clave:

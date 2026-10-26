@@ -213,7 +213,7 @@ def cmd_leds(cfg, _args) -> int:
     return 0
 
 
-def cmd_autoprueba(cfg: Config, _args) -> int:
+def cmd_autoprueba(cfg: Config, args) -> int:
     fallos = 0
 
     def check(nombre: str, ok: bool, detalle: str = "") -> None:
@@ -238,8 +238,11 @@ def cmd_autoprueba(cfg: Config, _args) -> int:
             check(f"modelo {m}", OllamaClient.has_model(instalados, m))
     except OllamaError as exc:
         check("ollama", False, str(exc))
-    leds = LedBank(cfg.indicadores)
-    check("LEDs físicos", leds.mode == "sysfs", leds.mode)
+    if args.sin_leds:
+        print("[OMITIDO] LEDs físicos (--sin-leds)")
+    else:
+        leds = LedBank(cfg.indicadores)
+        check("LEDs físicos", leds.mode == "sysfs", leds.mode)
     print(f"\n{'Sin fallos' if not fallos else f'{fallos} verificación(es) fallaron'}")
     return 0 if not fallos else 1
 
@@ -273,8 +276,9 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("leds", help="probar los LEDs del semáforo")
     p.add_argument("accion", choices=("probar",))
     p.set_defaults(fn=cmd_leds)
-    sub.add_parser("autoprueba", help="verificar configuración, BD, Ollama, modelos y LEDs").set_defaults(
-        fn=cmd_autoprueba)
+    selftest = sub.add_parser("autoprueba", help="verificar configuración, BD, Ollama, modelos y LEDs")
+    selftest.add_argument("--sin-leds", action="store_true", help="omitir LEDs físicos al probar en QEMU")
+    selftest.set_defaults(fn=cmd_autoprueba)
     args = parser.parse_args(argv)
     cfg = load_config(args.config)
     return args.fn(cfg, args)

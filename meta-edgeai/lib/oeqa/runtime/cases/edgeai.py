@@ -12,13 +12,21 @@ class EdgeAITest(OERuntimeTestCase):
         self.assertEqual(status, 0, output)
         return output
 
+    def wait_for_api(self):
+        self.command(
+            "curl -fsS --retry 30 --retry-connrefused --retry-delay 1 "
+            "--retry-max-time 90 --connect-timeout 2 --max-time 5 "
+            "--output /dev/null http://127.0.0.1/api/dominio"
+        )
+
     @OETestDepends(["ssh.SSHTest.test_ssh"])
     def test_services(self):
         self.command("systemctl start ollama edgeai-helpdesk edgeai-provision", timeout=300)
         self.command("systemctl is-active ollama edgeai-helpdesk edgeai-provision")
         self.command("test -f /etc/edgeai-qemu-testing")
         self.command("test ! -f /etc/wpa_supplicant/wpa_supplicant-wlan0.conf")
-        self.command("edgeai-admin autoprueba", timeout=300)
+        self.command("edgeai-admin autoprueba --sin-leds", timeout=300)
+        self.wait_for_api()
         for path in ("/", "/panel", "/api/health"):
             self.command("curl -fsS http://127.0.0.1" + path)
 
@@ -46,6 +54,7 @@ class EdgeAITest(OERuntimeTestCase):
         else:
             self.fail("QEMU no completo el reinicio en 600 segundos")
         self.command("systemctl start edgeai-helpdesk", timeout=300)
+        self.wait_for_api()
         query = f"http://127.0.0.1/api/consulta/{ticket['id']}?clave={ticket['clave']}"
         saved = json.loads(self.command("curl -fsS " + shlex.quote(query)))
         self.assertEqual(saved["id"], ticket["id"])

@@ -1,15 +1,20 @@
 """Prueba de punta a punta: servidor real + simulador de Ollama."""
 
+import io
 import json
 import threading
 import time
 import unittest
 import urllib.error
 import urllib.request
+from contextlib import redirect_stdout
+from unittest.mock import patch
 
 from helpers import ROOT, make_config, tempdir
 from mock_ollama import serve as serve_mock
 
+from edgeai_helpdesk.admin import main as admin_main
+from edgeai_helpdesk.ollama_client import OllamaError
 from edgeai_helpdesk.server import build_server
 from edgeai_helpdesk.service import HelpdeskService
 
@@ -66,6 +71,20 @@ class ApiTests(unittest.TestCase):
         self.assertTrue(h["listo"])
         self.assertEqual(h["ollama"]["modelos_faltantes"], [])
         self.assertEqual(h["indicadores"]["modo"], "simulado")
+
+    def test_admin_selftest_requires_leds(self):
+        with patch("edgeai_helpdesk.admin.load_config", return_value=self.cfg), redirect_stdout(io.StringIO()):
+            self.assertEqual(admin_main(["autoprueba"]), 1)
+
+    def test_admin_selftest_without_leds(self):
+        with patch("edgeai_helpdesk.admin.load_config", return_value=self.cfg), redirect_stdout(io.StringIO()):
+            self.assertEqual(admin_main(["autoprueba", "--sin-leds"]), 0)
+
+    def test_admin_selftest_without_leds_still_checks_ollama(self):
+        with patch("edgeai_helpdesk.admin.load_config", return_value=self.cfg), \
+                patch("edgeai_helpdesk.admin.OllamaClient.version", side_effect=OllamaError("no disponible")), \
+                redirect_stdout(io.StringIO()):
+            self.assertEqual(admin_main(["autoprueba", "--sin-leds"]), 1)
 
     def test_static_pages(self):
         for path, needle in (("/", b"Enviar consulta"), ("/panel", b"Panel de atenci"), ("/static/app.css", b":root")):

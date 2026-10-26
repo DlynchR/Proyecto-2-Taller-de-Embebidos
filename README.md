@@ -35,7 +35,7 @@ flowchart LR
 **Probar la aplicación en cualquier PC (sin Pi ni modelos):**
 
 ```bash
-make test     # 32 pruebas
+make test     # pruebas de la aplicación
 make dev      # kiosco en http://127.0.0.1:8080 y panel en /panel (simulador de Ollama)
 ```
 
