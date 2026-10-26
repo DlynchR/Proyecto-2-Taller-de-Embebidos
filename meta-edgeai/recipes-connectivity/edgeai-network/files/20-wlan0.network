@@ -1,0 +1,10 @@
+# Wi-Fi (solo si se configuró EDGEAI_WIFI_SSID al construir la imagen).
+[Match]
+Name=wlan0
+
+[Network]
+DHCP=yes
+MulticastDNS=yes
+
+[DHCPv4]
+RouteMetric=20

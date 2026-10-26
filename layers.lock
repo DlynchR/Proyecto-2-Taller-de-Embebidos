@@ -1,0 +1,4 @@
+openembedded-core f09a0f28aeb54ddd90415dd458338e1565bb5a49
+bitbake fae9db3168dbff1b8c76fe9c6726a9687ff97514
+meta-yocto 1b132647002eea43a2c7a7f857f63f42dacbc26c
+meta-raspberrypi f62c67921474370829d24a4fa01ef88543f3906b

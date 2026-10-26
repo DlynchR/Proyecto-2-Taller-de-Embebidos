@@ -1,0 +1,1 @@
+Build EdgeAI: Raspberry Pi 4 (raspberrypi4-64) + Ollama + mesa de ayuda local.

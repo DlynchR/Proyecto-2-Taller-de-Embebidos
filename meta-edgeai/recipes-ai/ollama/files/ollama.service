@@ -1,0 +1,19 @@
+[Unit]
+Description=Ollama (LLMs y modelos de decisión System One)
+Documentation=https://docs.ollama.com
+After=network.target
+
+[Service]
+Type=exec
+User=ollama
+Group=ollama
+EnvironmentFile=-/etc/default/ollama
+ExecStart=/usr/bin/ollama serve
+Restart=always
+RestartSec=3
+StateDirectory=ollama
+StateDirectoryMode=0750
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,63 @@
+#
+# Configuración local del build EdgeAI (generada desde meta-edgeai/conf/templates/edgeai).
+#
+
+# Placa: Raspberry Pi 4 Model B en modo 64 bits (requisito del binario de Ollama).
+MACHINE ??= "raspberrypi4-64"
+
+# Distribución definida en meta-edgeai/conf/distro/edgeai.conf
+DISTRO ?= "edgeai"
+
+PACKAGE_CLASSES ?= "package_ipk"
+EXTRA_IMAGE_FEATURES ?= ""
+USER_CLASSES ?= "buildstats"
+PATCHRESOLVE = "noop"
+
+# Descargas y sstate fuera de build/ para reutilizarlos entre builds limpios.
+DL_DIR ?= "${EDGEAI_REPO_DIR}/downloads"
+SSTATE_DIR ?= "${EDGEAI_REPO_DIR}/sstate-cache"
+BB_HASHSERVE_DB_DIR = "${SSTATE_DIR}"
+
+# Ahorro de disco: borra el directorio de trabajo de cada receta al terminar.
+INHERIT += "rm_work"
+RM_WORK_EXCLUDE += "edgeai-helpdesk ollama-bin edgeai-image"
+
+# buildhistory: registra dependencias y tamaños de la imagen (docs/dependencias.md).
+INHERIT += "buildhistory"
+BUILDHISTORY_COMMIT = "0"
+
+# Hilos de compilación (por defecto = núcleos). Bajar si hay poca RAM (< 2 GB por hilo).
+BB_NUMBER_THREADS = "4"
+PARALLEL_MAKE = "-j 4"
+
+# --- Raspberry Pi ---
+ENABLE_UART = "1"
+# Consola de texto: 64 MB para la GPU dejan el resto de la RAM a los modelos.
+GPU_MEM = "64"
+
+# --- EdgeAI ---
+# Pines BCM de los LEDs del semáforo (ver docs/hardware.md).
+#EDGEAI_GPIO_VERDE = "17"
+#EDGEAI_GPIO_AMARILLO = "27"
+#EDGEAI_GPIO_ROJO = "22"
+
+# Precargar los modelos en la imagen (opera sin internet desde el primer arranque).
+# Requiere generar el archivo con tools/export_models.py.
+EDGEAI_PRELOAD_MODELS ?= "0"
+EDGEAI_MODELS_TARBALL ?= "${EDGEAI_REPO_DIR}/models/ollama-models.tar"
+
+# Configuración de demostración (Wi-Fi y root), versionada por decisión del propietario.
+# No almacenar tokens de GitHub en este archivo.
+include ${EDGEAI_REPO_DIR}/edgeai-secrets.conf
+
+BB_DISKMON_DIRS ??= "\
+    STOPTASKS,${TMPDIR},1G,100K \
+    STOPTASKS,${DL_DIR},1G,100K \
+    STOPTASKS,${SSTATE_DIR},1G,100K \
+    STOPTASKS,/tmp,100M,100K \
+    HALT,${TMPDIR},100M,1K \
+    HALT,${DL_DIR},100M,1K \
+    HALT,${SSTATE_DIR},100M,1K \
+    HALT,/tmp,10M,1K"
+
+CONF_VERSION = "2"

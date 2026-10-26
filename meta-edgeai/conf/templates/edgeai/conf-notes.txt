@@ -1,0 +1,8 @@
+
+Objetivos disponibles:
+    edgeai-image        imagen completa de la mesa de ayuda EdgeAI
+    ollama-bin          solo el paquete de Ollama
+    edgeai-helpdesk     solo la aplicación
+
+Desde la raíz del repositorio también puede usar:
+    ./scripts/build-image.sh      ./scripts/flash-sd.sh /dev/sdX
