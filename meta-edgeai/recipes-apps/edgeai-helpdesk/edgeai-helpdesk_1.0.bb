@@ -47,6 +47,8 @@ do_install() {
     # Servicios systemd
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${S}/systemd/*.service ${D}${systemd_system_unitdir}/
+    install -d ${D}${systemd_unitdir}/system-preset
+    install -m 0644 ${S}/systemd/00-edgeai-kiosk.preset ${D}${systemd_unitdir}/system-preset/
     # tty1 es del kiosco: se enmascara su getty (el inicio de sesión queda en tty2).
     install -d ${D}${sysconfdir}/systemd/system
     ln -sf /dev/null ${D}${sysconfdir}/systemd/system/getty@tty1.service
@@ -65,6 +67,7 @@ FILES:${PN} += "\
     ${nonarch_libdir}/edgeai \
     ${datadir}/edgeai \
     ${systemd_system_unitdir} \
+    ${systemd_unitdir}/system-preset/00-edgeai-kiosk.preset \
     ${localstatedir}/lib/edgeai \
 "
 CONFFILES:${PN} = "\
