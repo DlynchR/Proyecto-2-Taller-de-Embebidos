@@ -1,0 +1,20 @@
+[Unit]
+Description=EdgeAI: verificar, descargar y precargar los modelos de Ollama
+After=ollama.service
+Requires=ollama.service
+
+[Service]
+Type=oneshot
+User=edgeai
+Group=edgeai
+# Si faltan modelos los descarga (requiere internet); si no hay red, reintenta cada minuto.
+ExecStart=/usr/bin/edgeai-admin --config /etc/edgeai/helpdesk.conf modelos asegurar --descargar --esperar 120
+# Carga ambos modelos en RAM para que la primera consulta no espere la carga.
+ExecStartPost=/usr/bin/edgeai-admin --config /etc/edgeai/helpdesk.conf modelos precargar --esperar 120
+RemainAfterExit=yes
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

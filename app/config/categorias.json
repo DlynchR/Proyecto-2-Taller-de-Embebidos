@@ -1,0 +1,73 @@
+{
+  "_nota": "Dominio de la mesa de ayuda. El contenido de 'conocimiento' es de ejemplo: validarlo y ajustarlo con los actores (encargado del laboratorio, asistentes). Tras editar en la Pi: systemctl restart edgeai-helpdesk",
+  "servicio": {
+    "nombre": "Mesa de ayuda del Laboratorio de Electrónica",
+    "descripcion": "Atiende a estudiantes y docentes del laboratorio: problemas con computadoras, red e instrumentos; préstamo de equipo y componentes; trámites propios del laboratorio (reservas, constancias de uso, inducción); e incidentes de infraestructura del laboratorio (electricidad, agua, aire acondicionado, mobiliario)."
+  },
+  "categorias": {
+    "soporte_tecnico": {
+      "etiqueta": "Soporte técnico",
+      "descripcion": "Fallas de computadoras, software, impresoras, red o instrumentos del laboratorio",
+      "conocimiento": [
+        "Antes de reportar una computadora, reiniciarla y verificar que el cable de red y el de alimentación estén conectados.",
+        "Las computadoras del laboratorio usan la cuenta institucional; si la contraseña falla, debe restablecerse en el portal institucional, nunca se comparte con la mesa de ayuda.",
+        "Para fallas de instrumentos (osciloscopio, fuente, generador), anotar el número de activo pegado en el equipo y no intentar abrirlo.",
+        "La red inalámbrica del laboratorio usa las credenciales institucionales; olvidar la red y volver a conectarse resuelve la mayoría de fallos de conexión."
+      ]
+    },
+    "prestamo_equipo": {
+      "etiqueta": "Préstamo de equipo",
+      "descripcion": "Solicitudes de préstamo o devolución de equipo, kits, herramientas o componentes",
+      "conocimiento": [
+        "El préstamo se solicita en la ventanilla del laboratorio presentando el carné vigente.",
+        "Los kits de desarrollo y herramientas se prestan por un máximo de 3 días hábiles; los instrumentos de banco no salen del laboratorio.",
+        "Los componentes de consumo (resistencias, cables) se entregan según disponibilidad, sin préstamo.",
+        "Las devoluciones se revisan en ventanilla; reportar de inmediato cualquier daño."
+      ]
+    },
+    "tramite": {
+      "etiqueta": "Trámites",
+      "descripcion": "Trámites del laboratorio: reservas de espacio, constancias de uso, inducción, horarios",
+      "conocimiento": [
+        "Las reservas de mesas de trabajo se hacen con al menos 24 horas de anticipación en la ventanilla o por el canal oficial del laboratorio.",
+        "Las constancias de uso del laboratorio las emite la coordinación en un plazo de 3 días hábiles.",
+        "Toda persona debe aprobar la inducción de seguridad antes de usar el laboratorio sin supervisión."
+      ]
+    },
+    "infraestructura": {
+      "etiqueta": "Infraestructura",
+      "descripcion": "Problemas del espacio físico: electricidad, tomacorrientes, agua, aire acondicionado, iluminación, mobiliario",
+      "conocimiento": [
+        "Ante olor a quemado, chispas o humo: desconectar el equipo si es seguro hacerlo, alejarse y avisar de inmediato al encargado.",
+        "Ante fugas de agua cerca de equipo eléctrico: no tocar el equipo y avisar de inmediato al encargado.",
+        "Fallas de aire acondicionado, iluminación o mobiliario se reportan y se atienden según la programación de mantenimiento."
+      ]
+    },
+    "otro": {
+      "etiqueta": "Otro",
+      "descripcion": "Consultas del laboratorio que no encajan en las demás categorías",
+      "conocimiento": [
+        "Si la consulta no corresponde a soporte, préstamo, trámites o infraestructura, un encargado la revisará y le orientará."
+      ]
+    }
+  },
+  "urgencia": [
+    "baja: consulta general o mejora, puede esperar varios días",
+    "media: afecta el trabajo de una persona, conviene resolver hoy",
+    "alta: impide trabajar a un grupo o una práctica en curso",
+    "crítica: riesgo para personas o equipos (electricidad, humo, agua), atender de inmediato"
+  ],
+  "preguntas": {
+    "categoria": "¿A qué categoría de la mesa de ayuda pertenece el mensaje del usuario?",
+    "urgencia": "¿Qué tan urgente es atender el mensaje del usuario?",
+    "en_alcance": "¿El mensaje del usuario es una solicitud que el servicio descrito en 'que_atiende' puede atender?",
+    "apropiado": "¿El mensaje del usuario es apropiado para una mesa de ayuda?",
+    "datos_sensibles": "¿El mensaje del usuario incluye contraseñas, números de identificación u otros datos personales sensibles?",
+    "autoservicio": "¿La persona podría resolverlo por su cuenta siguiendo instrucciones, sin que un encargado intervenga?"
+  },
+  "plantillas": {
+    "rechazado": "Su mensaje no se pudo registrar porque no cumple las normas de uso de la mesa de ayuda. Por favor redacte su consulta de forma respetuosa.",
+    "fuera_alcance": "Esta mesa de ayuda solo atiende asuntos del Laboratorio de Electrónica (soporte, préstamo de equipo, trámites e infraestructura). Para otros temas, consulte en la secretaría de la escuela.",
+    "error_llm": "Su consulta quedó registrada y un encargado la revisará. En este momento no se pudo generar una respuesta automática."
+  }
+}

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Lanzador instalado por la receta edgeai-helpdesk (código en /usr/lib/edgeai).
+export PYTHONPATH="/usr/lib/edgeai${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 -m edgeai_helpdesk.kiosk "$@"

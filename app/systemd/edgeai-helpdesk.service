@@ -1,0 +1,25 @@
+[Unit]
+Description=Mesa de ayuda EdgeAI (API JSON e interfaz web)
+Documentation=file:///usr/share/doc/edgeai/README.md
+After=network.target ollama.service
+Wants=ollama.service
+
+[Service]
+Type=simple
+User=edgeai
+Group=edgeai
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/edgeai-helpdesk --config /etc/edgeai/helpdesk.conf
+Restart=on-failure
+RestartSec=3
+StateDirectory=edgeai
+# Permite escuchar en el puerto 80 sin ejecutarse como root.
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+NoNewPrivileges=yes
+ProtectSystem=full
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

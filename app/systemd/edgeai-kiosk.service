@@ -1,0 +1,30 @@
+[Unit]
+Description=Kiosco de texto de la mesa de ayuda EdgeAI (tty1)
+After=edgeai-helpdesk.service systemd-user-sessions.service
+Wants=edgeai-helpdesk.service
+# El kiosco ocupa tty1; el inicio de sesión queda disponible en tty2 (Ctrl+Alt+F2).
+Conflicts=getty@tty1.service
+After=getty@tty1.service
+
+[Service]
+Type=simple
+User=edgeai
+Group=edgeai
+Environment=EDGEAI_API=http://127.0.0.1:80
+Environment=LANG=C.UTF-8
+Environment=PYTHONIOENCODING=utf-8
+# Teclado latinoamericano en la consola ("+": con privilegios; "-": no fallar si no existe).
+ExecStartPre=-+/usr/bin/loadkeys la-latin1
+ExecStart=/usr/bin/edgeai-kiosk
+StandardInput=tty
+StandardOutput=tty
+StandardError=journal
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mesa de ayuda</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1 id="servicio">Mesa de ayuda</h1>
+      <div class="sub">Asistente local: su consulta se procesa en este equipo, sin enviarse a internet.</div>
+    </div>
+  </header>
+  <main>
+    <section class="card" id="form-card">
+      <form id="form">
+        <label for="texto">¿En qué le podemos ayudar?</label>
+        <textarea id="texto" name="texto" maxlength="2000" required
+          placeholder="Ej.: La computadora de la mesa 4 no enciende."></textarea>
+        <div class="row">
+          <div>
+            <label for="nombre">Nombre <span class="muted small">(opcional)</span></label>
+            <input type="text" id="nombre" name="nombre" maxlength="80" autocomplete="name">
+          </div>
+          <div>
+            <label for="contacto">Contacto <span class="muted small">(opcional)</span></label>
+            <input type="text" id="contacto" name="contacto" maxlength="120" placeholder="correo o extensión">
+          </div>
+        </div>
+        <p class="muted small">No escriba contraseñas ni datos personales sensibles.</p>
+        <p id="form-error" class="error" hidden></p>
+        <div class="actions">
+          <button type="submit" id="enviar">Enviar consulta</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card" id="resultado" hidden>
+      <div class="ticket-head">
+        <h2 id="r-titulo">Tiquete</h2>
+        <span id="r-urgencia" class="badge"></span>
+      </div>
+      <div class="meta">
+        <span id="r-categoria" class="badge"></span>
+        <span id="r-estado" class="badge"></span>
+        <span id="r-lat" class="badge muted"></span>
+      </div>
+      <div id="r-respuesta" class="answer"></div>
+      <div class="actions">
+        <button type="button" class="ghost" id="nueva">Nueva consulta</button>
+      </div>
+    </section>
+  </main>
+  <script src="/static/kiosk.js"></script>
+</body>
+</html>

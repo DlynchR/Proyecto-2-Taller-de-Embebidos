@@ -1,0 +1,20 @@
+# Yocto (se generan con scripts/setup-build.sh y build-image.sh)
+/sources/
+/build/
+/downloads/
+/sstate-cache/
+
+# Entorno local y modelos precargados
+/edgeai-build.env
+/artifacts/
+/logs/
+/models/
+
+# Desarrollo
+/var/
+__pycache__/
+*.pyc
+*.csv
+.venv/
+.vscode/
+.idea/

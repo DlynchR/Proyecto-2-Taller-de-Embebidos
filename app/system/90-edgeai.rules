@@ -1,0 +1,2 @@
+# LEDs del semáforo (overlay gpio-led, etiquetas edgeai-*): el grupo edgeai puede encenderlos.
+SUBSYSTEM=="leds", KERNEL=="edgeai-*", ACTION=="add", RUN+="/bin/sh -c 'chgrp edgeai /sys/class/leds/%k/brightness && chmod g+w /sys/class/leds/%k/brightness'"

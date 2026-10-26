@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de atención</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Panel de atención · <span id="servicio">Mesa de ayuda</span></h1>
+      <div class="sub" id="sistema">Conectando...</div>
+    </div>
+    <div class="leds" title="Indicadores de la Raspberry Pi">
+      <span class="small muted" id="leds-modo"></span>
+      <span class="led verde" id="led-verde" title="Verde: sistema listo"></span>
+      <span class="led amarillo" id="led-amarillo" title="Amarillo: cola / redactando"></span>
+      <span class="led rojo" id="led-rojo" title="Rojo: urgente / falla"></span>
+    </div>
+  </header>
+  <main class="wide">
+    <div id="token-box" class="card" hidden>
+      <label for="token">Token del panel</label>
+      <div class="row">
+        <input type="text" id="token" autocomplete="off">
+        <button type="button" id="token-ok" style="flex:0 0 auto">Entrar</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">En cola</div><div class="v" id="s-cola">-</div></div>
+      <div class="stat"><div class="k">Urgentes</div><div class="v" id="s-urg">-</div></div>
+      <div class="stat"><div class="k">Redactando</div><div class="v" id="s-red">-</div></div>
+      <div class="stat"><div class="k">Decisión prom.</div><div class="v" id="s-dec">-</div></div>
+      <div class="stat"><div class="k">LLM prom.</div><div class="v" id="s-llm">-</div></div>
+      <div class="stat"><div class="k">Total</div><div class="v" id="s-total">-</div></div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button data-vista="cola" class="active">Cola</button>
+      <button data-vista="autoservicio">Autoservicio</button>
+      <button data-vista="atendido">Atendidos</button>
+      <button data-vista="fuera_alcance">Fuera de alcance</button>
+      <button data-vista="rechazado">Rechazados</button>
+      <button data-vista="todos">Todos</button>
+      <span style="flex:1"></span>
+      <button id="siguiente" class="active">Atender siguiente</button>
+    </div>
+
+    <div class="card table-wrap" style="padding:0">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Urgencia</th><th>Categoría</th><th>Resumen</th>
+            <th class="hide-sm">Hora</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="filas"><tr><td colspan="6" class="muted">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+    <p class="muted small">Clic en una fila para ver el texto, las probabilidades del modelo de decisión y la respuesta.</p>
+  </main>
+  <script src="/static/panel.js"></script>
+</body>
+</html>

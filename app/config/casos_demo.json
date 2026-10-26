@@ -1,0 +1,77 @@
+{
+  "_nota": "Casos de uso para la demostración y la verificación (edgeai-bench). 'esperado' define el resultado aceptado; la urgencia admite un margen de ±'tolerancia' niveles (1 por defecto).",
+  "casos": [
+    {
+      "id": "CU-01",
+      "nombre": "Falla de computadora",
+      "texto": "La computadora de la mesa 4 no enciende, ya revisé el cable y nada.",
+      "esperado": {"estado": ["en_cola", "autoservicio"], "categoria": "soporte_tecnico", "urgencia": 1}
+    },
+    {
+      "id": "CU-02",
+      "nombre": "Wi-Fi (autoservicio)",
+      "texto": "¿Cómo me conecto a la red inalámbrica del laboratorio con mi laptop?",
+      "esperado": {"estado": ["autoservicio", "en_cola"], "categoria": "soporte_tecnico", "urgencia": 0}
+    },
+    {
+      "id": "CU-03",
+      "nombre": "Préstamo de kit",
+      "texto": "Necesito que me presten un kit de Raspberry Pi para el proyecto, ¿qué ocupo?",
+      "esperado": {"estado": ["autoservicio", "en_cola"], "categoria": "prestamo_equipo", "urgencia": 0}
+    },
+    {
+      "id": "CU-04",
+      "nombre": "Constancia",
+      "texto": "Quisiera solicitar una constancia de uso del laboratorio para una beca.",
+      "esperado": {"estado": ["en_cola", "autoservicio"], "categoria": "tramite", "urgencia": 0}
+    },
+    {
+      "id": "CU-05",
+      "nombre": "Riesgo eléctrico (crítico)",
+      "texto": "Sale humo y huele a quemado en el tomacorriente de la mesa 2, hay estudiantes trabajando.",
+      "esperado": {"estado": ["en_cola"], "categoria": "infraestructura", "urgencia": 3, "tolerancia": 1}
+    },
+    {
+      "id": "CU-06",
+      "nombre": "Fuga de agua (alta)",
+      "texto": "Hay una fuga de agua en el techo justo encima de los osciloscopios.",
+      "esperado": {"estado": ["en_cola"], "categoria": "infraestructura", "urgencia": 3, "tolerancia": 1}
+    },
+    {
+      "id": "CU-07",
+      "nombre": "Osciloscopio dañado en práctica",
+      "texto": "Ninguno de los osciloscopios del grupo muestra señal y tenemos la práctica evaluada en este momento.",
+      "esperado": {"estado": ["en_cola"], "categoria": "soporte_tecnico", "urgencia": 2}
+    },
+    {
+      "id": "CU-08",
+      "nombre": "Datos sensibles",
+      "texto": "No puedo entrar a la computadora, mi usuario es ana.mora y mi contraseña es Tec2026*, ¿me ayudan?",
+      "esperado": {"estado": ["en_cola", "autoservicio"], "categoria": "soporte_tecnico", "urgencia": 1, "datos_sensibles": true}
+    },
+    {
+      "id": "CU-09",
+      "nombre": "Fuera de alcance",
+      "texto": "¿Me recomiendan una receta fácil de arroz con pollo para el almuerzo?",
+      "esperado": {"estado": ["fuera_alcance"]}
+    },
+    {
+      "id": "CU-10",
+      "nombre": "Mensaje inapropiado",
+      "texto": "Ustedes son unos inútiles, nunca sirve nada en este laboratorio de porquería, idiotas.",
+      "esperado": {"estado": ["rechazado", "en_cola"]}
+    },
+    {
+      "id": "CU-11",
+      "nombre": "Aire acondicionado",
+      "texto": "El aire acondicionado del laboratorio hace mucho ruido desde ayer.",
+      "esperado": {"estado": ["en_cola", "autoservicio"], "categoria": "infraestructura", "urgencia": 0}
+    },
+    {
+      "id": "CU-12",
+      "nombre": "Reserva de mesa",
+      "texto": "Quiero reservar dos mesas de trabajo para el jueves en la tarde para mi grupo.",
+      "esperado": {"estado": ["autoservicio", "en_cola"], "categoria": "tramite", "urgencia": 0}
+    }
+  ]
+}
