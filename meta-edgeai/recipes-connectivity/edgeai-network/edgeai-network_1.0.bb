@@ -16,9 +16,13 @@ inherit allarch
 # Defínalas en edgeai-secrets.conf. Sin SSID, el Wi-Fi queda apagado.
 EDGEAI_WIFI_SSID ??= ""
 EDGEAI_WIFI_PSK ??= ""
+EDGEAI_WIFI_FALLBACK_SSID ??= ""
+EDGEAI_WIFI_FALLBACK_PSK ??= ""
 EDGEAI_WIFI_COUNTRY ??= "CR"
 EDGEAI_WIFI_SSID:qemuarm64 = ""
 EDGEAI_WIFI_PSK:qemuarm64 = ""
+EDGEAI_WIFI_FALLBACK_SSID:qemuarm64 = ""
+EDGEAI_WIFI_FALLBACK_PSK:qemuarm64 = ""
 
 python do_install() {
     import hashlib
@@ -38,10 +42,13 @@ python do_install() {
         shutil.copyfile(source / filename, target)
         target.chmod(0o644)
 
-    ssid = d.getVar('EDGEAI_WIFI_SSID') or ''
-    if ssid:
-        password = d.getVar('EDGEAI_WIFI_PSK') or ''
-        country = d.getVar('EDGEAI_WIFI_COUNTRY')
+    country = d.getVar('EDGEAI_WIFI_COUNTRY')
+    networks = []
+    for prefix, priority in (('EDGEAI_WIFI', 20), ('EDGEAI_WIFI_FALLBACK', 10)):
+        ssid = d.getVar(prefix + '_SSID') or ''
+        if not ssid:
+            continue
+        password = d.getVar(prefix + '_PSK') or ''
         if not 1 <= len(ssid.encode('utf-8')) <= 32:
             bb.fatal('El SSID debe ocupar entre 1 y 32 bytes')
         if not re.fullmatch('[A-Z]{2}', country):
@@ -52,11 +59,13 @@ python do_install() {
             if not 8 <= len(password.encode('utf-8')) <= 63:
                 bb.fatal('La clave WPA debe ocupar entre 8 y 63 bytes')
             psk = hashlib.pbkdf2_hmac('sha1', password.encode('utf-8'), ssid.encode('utf-8'), 4096, dklen=32).hex()
+        networks.append(f'network={{\n    ssid={ssid.encode("utf-8").hex()}\n'
+                        f'    psk={psk}\n    priority={priority}\n}}\n')
+    if networks:
         target = config / 'wpa_supplicant/wpa_supplicant-wlan0.conf'
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text('ctrl_interface=/run/wpa_supplicant\nupdate_config=1\n'
-                          f'country={country}\n\nnetwork={{\n'
-                          f'    ssid={ssid.encode("utf-8").hex()}\n    psk={psk}\n}}\n')
+                          f'country={country}\n\n' + '\n'.join(networks))
         target.chmod(0o600)
         service = config / 'systemd/system/multi-user.target.wants/wpa_supplicant@wlan0.service'
         service.parent.mkdir(parents=True, exist_ok=True)

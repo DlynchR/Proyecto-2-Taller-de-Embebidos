@@ -111,13 +111,57 @@ Edite `edgeai-secrets.conf`:
 ```bitbake
 EDGEAI_WIFI_SSID = "MiRed"
 EDGEAI_WIFI_PSK = "mi-clave"
+EDGEAI_WIFI_FALLBACK_SSID = "RedRespaldo"
+EDGEAI_WIFI_FALLBACK_PSK = "clave-respaldo"
 # Contraseña de root (por defecto "edgeai"):
 #   openssl passwd -6 'nueva-clave'   -> escape cada $ como \$
 EDGEAI_ROOT_PASSWORD_HASH = "\$6\$...\$..."
 ```
 
-Sin SSID la Pi usa solo Ethernet. Con un cable directo a una laptop (sin router) también
+La red principal tiene prioridad 20 y la de respaldo prioridad 10. En la selección
+de red, `wpa_supplicant` prefiere la principal; si no está disponible o falla la
+autenticación puede seleccionar el respaldo. No hay un plazo fijo ni se comprueba
+el acceso a Internet. Una conexión estable al respaldo no garantiza un regreso
+inmediato a la principal cuando esta reaparezca. Ambas redes deben ser compatibles
+con WPA-PSK y estar dentro del alcance de la Pi.
+
+Sin ninguno de los dos SSID la Pi usa solo Ethernet. Con un cable directo a una laptop (sin router) también
 funciona: ambas toman direcciones 169.254.x.x y la web queda en `http://edgeai.local`.
+
+### Cambiar redes en una Pi ya instalada
+
+Desde la consola local o por Ethernet, edite como root
+`/etc/wpa_supplicant/wpa_supplicant-wlan0.conf`. Conserve sus opciones globales y
+defina los perfiles con sus prioridades:
+
+```ini
+network={
+  ssid="MiRed"
+  psk="mi-clave"
+  priority=20
+}
+network={
+  ssid="RedRespaldo"
+  psk="clave-respaldo"
+  priority=10
+}
+```
+
+La receta escribe SSID en hexadecimal y PSK derivadas, que también son válidas;
+no las duplique al editar. Para aplicar y verificar:
+
+```bash
+chmod 600 /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+systemctl restart wpa_supplicant@wlan0
+wpa_cli -i wlan0 status
+ip -4 addr show wlan0
+```
+
+El reinicio interrumpe el Wi-Fi y puede cerrar SSH. Tras cambiar de red la IP puede
+cambiar. Para probar el respaldo, apague temporalmente el punto de acceso principal.
+Estos cambios en la Pi no actualizan el repositorio ni las imágenes ya generadas;
+los cambios de `edgeai-secrets.conf` se incorporan al reconstruir la imagen. QEMU
+no incluye ninguno de los perfiles Wi-Fi.
 
 En este proyecto de demostración, `edgeai-secrets.conf` se versiona con la configuración
 Wi-Fi autorizada por el propietario. Tanto el archivo como la imagen pueden ser públicos:
