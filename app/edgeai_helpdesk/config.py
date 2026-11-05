@@ -43,12 +43,17 @@ class OllamaConfig:
 
 @dataclass
 class PoliticaConfig:
-    umbral_apropiado: float = 0.5
+    umbral_apropiado: float = 0.7
+    umbral_ofensivo: float = 0.35
     umbral_alcance: float = 0.4
-    umbral_confianza: float = 0.25
+    umbral_confianza: float = 0.5
     umbral_autoservicio: float = 0.6
     umbral_sensible: float = 0.5
     nivel_urgente: int = 2
+    # Puntaje de urgencia (0..N-1) desde el que empieza cada nivel. Vacío = redondear.
+    cortes_urgencia: str = "0.7, 1.6, 2.4"
+    # Categoría a la que van los mensajes clasificados con poca confianza.
+    categoria_dudosa: str = "otro"
 
 
 @dataclass
@@ -126,6 +131,12 @@ def validate_domain(dominio: dict) -> None:
     niveles = dominio["urgencia"]
     if not 2 <= len(niveles) <= 10:
         raise ValueError("La escala de urgencia debe tener entre 2 y 10 niveles")
+    riesgo = dominio.get("riesgo")
+    if riesgo is not None:
+        if not isinstance(riesgo.get("palabras", []), list):
+            raise ValueError("'riesgo.palabras' debe ser una lista")
+        if riesgo.get("categoria") and riesgo["categoria"] not in cats:
+            raise ValueError(f"'riesgo.categoria' no existe: {riesgo['categoria']}")
 
 
 def load_config(path: str | None = None) -> Config:

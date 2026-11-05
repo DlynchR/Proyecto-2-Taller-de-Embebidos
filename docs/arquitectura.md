@@ -229,6 +229,21 @@ flowchart TB
 2. **Política determinista separada del modelo.** Los umbrales viven en `helpdesk.conf`: se
    pueden ajustar con datos de `edgeai-bench` sin tocar código ni modelos, y cada decisión
    queda auditada con sus probabilidades en la base de datos.
+   - *Urgencia:* `score` es el promedio ponderado de los niveles. Con `tev1:0.8b` la
+     probabilidad se reparte y el promedio se carga al centro (una consulta trivial da ~0.55),
+     así que redondear nunca daba "baja". `cortes_urgencia = 0.7, 1.6, 2.4` fija desde qué
+     puntaje empieza cada nivel (medido con el modelo real: consultas sin falla 0.42-0.64).
+   - *Apropiado en dos niveles:* el modelo también baja `apropiado` en preguntas ajenas al
+     laboratorio (una receta da ~0.5). Debajo de `umbral_ofensivo` (0.35) se rechaza siempre;
+     entre 0.35 y `umbral_apropiado` (0.7) primero se revisa el alcance.
+   - *Descripciones:* textos más largos en la escala de urgencia o en la pregunta de alcance
+     subieron los puntajes del 0.8b; conviene medir con `edgeai-bench` cada cambio de redacción.
+   - *Categoría dudosa:* con confianza menor a `umbral_confianza` el modelo tiende a elegir la
+     categoría más amplia (soporte técnico); el tiquete pasa a `categoria_dudosa` (`otro`) y
+     se marca para revisión manual.
+   - *Regla de riesgo:* `riesgo.palabras` en `categorias.json` (humo, chispas, quemado,
+     fuga de agua...) fuerza urgencia crítica y la categoría de infraestructura, cuyo
+     conocimiento indica desconectar y alejarse. No depende del modelo.
 3. **Hardware declarado en el árbol de dispositivos.** El overlay `gpio-led` hace que el
    kernel exponga los LEDs como dispositivos estándar: la aplicación no necesita bibliotecas
    de GPIO ni privilegios de root.

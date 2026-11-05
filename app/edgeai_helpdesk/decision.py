@@ -8,6 +8,8 @@ solo si la política lo permite.
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from dataclasses import asdict, dataclass, field
 
 from .config import Config
@@ -37,6 +39,7 @@ class Decision:
     autoservicio: float
     estado: str = EN_COLA
     revision_manual: bool = False
+    riesgo: bool = False
     usar_llm: bool = True
     motivo: str = ""
     latencia_ms: float = 0.0
@@ -70,8 +73,8 @@ def build_questions(dominio: dict) -> dict:
             "type": "noul",
             "instructions": p["apropiado"],
             "criteria": {
-                "true": "Mensaje respetuoso, aunque sea informal o esté molesto.",
-                "false": "Insultos, acoso, amenazas, spam o contenido sexual.",
+                "true": "Mensaje respetuoso; puede ser informal o expresar una queja sin groserías.",
+                "false": "Groserías o insultos (también contra el servicio), acoso, amenazas, spam o contenido sexual.",
             },
         },
         "datos_sensibles": {
@@ -127,24 +130,100 @@ def parse_answers(answers: dict, dominio: dict) -> Decision:
     )
 
 
-def apply_policy(decision: Decision, cfg: Config) -> Decision:
+def parse_cuts(texto: str, niveles: int) -> list[float] | None:
+    """Lee ``cortes_urgencia`` ("0.8, 1.6, 2.4"). Devuelve None si no es válido."""
+    try:
+        cortes = [float(x) for x in str(texto or "").replace(";", ",").split(",") if x.strip()]
+    except ValueError:
+        return None
+    if len(cortes) != niveles - 1 or cortes != sorted(cortes):
+        return None
+    return cortes
+
+
+def urgency_level(score: float, cortes: list[float] | None, niveles: int) -> int:
+    """Convierte el puntaje esperado (0..niveles-1) en un nivel discreto.
+
+    El modelo devuelve el promedio ponderado de los niveles. Un modelo pequeño
+    reparte probabilidad entre todos y el promedio se carga hacia el centro, así
+    que redondear casi nunca da el nivel 0 ("baja"). Los cortes compensan ese sesgo.
+    """
+    if cortes is None:
+        return min(int(score + 0.5), niveles - 1)
+    return sum(1 for c in cortes if score >= c)
+
+
+def _normalize(texto: str) -> str:
+    texto = unicodedata.normalize("NFD", texto.lower())
+    return "".join(c for c in texto if unicodedata.category(c) != "Mn")
+
+
+def detect_risk(texto: str, dominio: dict) -> bool:
+    """Regla determinista de seguridad: palabras de riesgo físico (humo, chispas...)."""
+    palabras = (dominio.get("riesgo") or {}).get("palabras") or []
+    if not texto or not palabras:
+        return False
+    norm = _normalize(texto)
+    return any(re.search(rf"\b{re.escape(_normalize(p))}\b", norm) for p in palabras)
+
+
+def apply_risk(decision: Decision, dominio: dict) -> Decision:
+    """Marca el riesgo: urgencia máxima y la categoría de riesgo (si existe)."""
+    riesgo = dominio.get("riesgo") or {}
+    max_nivel = len(dominio["urgencia"]) - 1
+    decision.riesgo = True
+    decision.urgencia_nivel = max_nivel
+    decision.urgencia_score = max(decision.urgencia_score, float(max_nivel))
+    categoria = riesgo.get("categoria")
+    if categoria in dominio["categorias"]:
+        decision.categoria = categoria
+    return decision
+
+
+def _reject(decision: Decision) -> Decision:
+    decision.estado = RECHAZADO
+    decision.usar_llm = False
+    decision.motivo = "Contenido no apropiado"
+    return decision
+
+
+def apply_policy(decision: Decision, cfg: Config, texto: str = "") -> Decision:
     """Política determinista: convierte probabilidades en un estado."""
     pol = cfg.politica
-    if decision.apropiado < pol.umbral_apropiado:
-        decision.estado = RECHAZADO
-        decision.usar_llm = False
-        decision.motivo = "Contenido no apropiado"
-        return decision
-    if decision.en_alcance < pol.umbral_alcance:
+    dominio = cfg.dominio
+    niveles = len(dominio["urgencia"])
+    cortes = parse_cuts(pol.cortes_urgencia, niveles)
+    decision.urgencia_nivel = urgency_level(decision.urgencia_score, cortes, niveles)
+    if detect_risk(texto, dominio):
+        apply_risk(decision, dominio)
+
+    # Claramente ofensivo: se rechaza siempre.
+    if decision.apropiado < pol.umbral_ofensivo:
+        return _reject(decision)
+    # Un riesgo físico en el laboratorio nunca se descarta como fuera de alcance.
+    if decision.en_alcance < pol.umbral_alcance and not decision.riesgo:
         decision.estado = FUERA_ALCANCE
         decision.usar_llm = False
         decision.motivo = "Fuera del alcance del servicio"
         return decision
+    # Dudoso (entre umbral_ofensivo y umbral_apropiado): el modelo también baja
+    # 'apropiado' en preguntas ajenas (p. ej. una receta), por eso se decide después
+    # del alcance; si está en alcance y no es claramente apropiado, se rechaza.
+    if decision.apropiado < pol.umbral_apropiado:
+        return _reject(decision)
 
     decision.usar_llm = True
-    if decision.categoria == SIN_CLASIFICAR or decision.categoria_conf < pol.umbral_confianza:
+    if decision.riesgo:
+        decision.motivo = "Riesgo para personas o equipos: atender de inmediato"
+    elif decision.categoria == SIN_CLASIFICAR or decision.categoria_conf < pol.umbral_confianza:
         decision.revision_manual = True
-        decision.motivo = "Clasificación con baja confianza: revisar manualmente"
+        elegida = decision.categoria
+        # Con poca confianza el modelo tiende a elegir la categoría más amplia
+        # (soporte técnico). Se envía a la categoría de respaldo para que un
+        # encargado la clasifique.
+        if elegida != SIN_CLASIFICAR and pol.categoria_dudosa in dominio["categorias"]:
+            decision.categoria = pol.categoria_dudosa
+        decision.motivo = f"Clasificación dudosa (modelo: {elegida}): revisar manualmente"
 
     urgente = decision.urgencia_nivel >= pol.nivel_urgente
     if (
@@ -203,7 +282,7 @@ class Decider:
         decision.latencia_ms = round(result.elapsed_ms, 1)
         decision.modelo = result.data.get("model", self.cfg.ollama.modelo_decision)
         decision.raw = result.data
-        return apply_policy(decision, self.cfg)
+        return apply_policy(decision, self.cfg, texto)
 
     def decide_safe(self, texto: str) -> Decision:
         try:

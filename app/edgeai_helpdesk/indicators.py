@@ -84,18 +84,18 @@ class IndicatorController(threading.Thread):
         self.leds = leds
         self._status = {"ollama_ok": False, "modelos_ok": False, "en_cola": 0, "urgentes": 0, "generando": 0}
         self._lock = threading.Lock()
-        self._stop = threading.Event()
+        self._stop_event = threading.Event()
 
     def update(self, **status) -> None:
         with self._lock:
             self._status.update(status)
 
     def stop(self) -> None:
-        self._stop.set()
+        self._stop_event.set()
 
     def run(self) -> None:
         tick = 0
-        while not self._stop.is_set():
+        while not self._stop_event.is_set():
             with self._lock:
                 st = dict(self._status)
             slow = (tick // 4) % 2 == 0  # 1 s de periodo
@@ -112,5 +112,5 @@ class IndicatorController(threading.Thread):
                     self.leds.set("amarillo", st["en_cola"] > 0)
                 self.leds.set("rojo", st["urgentes"] > 0)
             tick += 1
-            self._stop.wait(self.TICK)
+            self._stop_event.wait(self.TICK)
         self.leds.all_off()

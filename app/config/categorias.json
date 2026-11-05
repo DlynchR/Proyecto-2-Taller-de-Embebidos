@@ -5,6 +5,15 @@
     "descripcion": "Atiende a estudiantes y docentes del laboratorio: problemas con computadoras, red e instrumentos; préstamo de equipo y componentes; trámites propios del laboratorio (reservas, constancias de uso, inducción); e incidentes de infraestructura del laboratorio (electricidad, agua, aire acondicionado, mobiliario)."
   },
   "categorias": {
+    "infraestructura": {
+      "etiqueta": "Infraestructura",
+      "descripcion": "Riesgos físicos y problemas del espacio: humo, chispas, olor a quemado o fuego en cualquier equipo o instalación; electricidad y tomacorrientes; fugas de agua; aire acondicionado; iluminación; mobiliario",
+      "conocimiento": [
+        "Ante olor a quemado, chispas o humo: desconectar el equipo si es seguro hacerlo, alejarse y avisar de inmediato al encargado.",
+        "Ante fugas de agua cerca de equipo eléctrico: no tocar el equipo y avisar de inmediato al encargado.",
+        "Fallas de aire acondicionado, iluminación o mobiliario se reportan y se atienden según la programación de mantenimiento."
+      ]
+    },
     "soporte_tecnico": {
       "etiqueta": "Soporte técnico",
       "descripcion": "Fallas de computadoras, software, impresoras, red o instrumentos del laboratorio",
@@ -27,25 +36,16 @@
     },
     "tramite": {
       "etiqueta": "Trámites",
-      "descripcion": "Trámites del laboratorio: reservas de espacio, constancias de uso, inducción, horarios",
+      "descripcion": "Trámites y gestiones del laboratorio: reservas de espacio, constancias de uso, inducción, horarios, entrega de bitácoras, reportes o documentos",
       "conocimiento": [
         "Las reservas de mesas de trabajo se hacen con al menos 24 horas de anticipación en la ventanilla o por el canal oficial del laboratorio.",
         "Las constancias de uso del laboratorio las emite la coordinación en un plazo de 3 días hábiles.",
         "Toda persona debe aprobar la inducción de seguridad antes de usar el laboratorio sin supervisión."
       ]
     },
-    "infraestructura": {
-      "etiqueta": "Infraestructura",
-      "descripcion": "Problemas del espacio físico: electricidad, tomacorrientes, agua, aire acondicionado, iluminación, mobiliario",
-      "conocimiento": [
-        "Ante olor a quemado, chispas o humo: desconectar el equipo si es seguro hacerlo, alejarse y avisar de inmediato al encargado.",
-        "Ante fugas de agua cerca de equipo eléctrico: no tocar el equipo y avisar de inmediato al encargado.",
-        "Fallas de aire acondicionado, iluminación o mobiliario se reportan y se atienden según la programación de mantenimiento."
-      ]
-    },
     "otro": {
       "etiqueta": "Otro",
-      "descripcion": "Consultas del laboratorio que no encajan en las demás categorías",
+      "descripcion": "Preguntas generales o mensajes sin una solicitud concreta (saludos, la hora, quejas sin detalle) y consultas del laboratorio que no encajan en las demás categorías",
       "conocimiento": [
         "Si la consulta no corresponde a soporte, préstamo, trámites o infraestructura, un encargado la revisará y le orientará."
       ]
@@ -57,6 +57,34 @@
     "alta: impide trabajar a un grupo o una práctica en curso",
     "crítica: riesgo para personas o equipos (electricidad, humo, agua), atender de inmediato"
   ],
+  "riesgo": {
+    "_nota": "Regla fija de seguridad, no depende del modelo: si el mensaje contiene alguna de estas palabras, la urgencia pasa a crítica y la categoría a 'categoria'. Así la respuesta usa el conocimiento de seguridad (desconectar, alejarse, avisar).",
+    "categoria": "infraestructura",
+    "palabras": [
+      "humo",
+      "humeando",
+      "chispa",
+      "chispas",
+      "chisporrotea",
+      "quemado",
+      "quemada",
+      "olor a quemado",
+      "se quema",
+      "se esta quemando",
+      "fuego",
+      "llamas",
+      "incendio",
+      "cortocircuito",
+      "corto circuito",
+      "descarga electrica",
+      "electrocutado",
+      "fuga de agua",
+      "fuga de gas",
+      "olor a gas",
+      "inundacion",
+      "inundado"
+    ]
+  },
   "preguntas": {
     "categoria": "¿A qué categoría de la mesa de ayuda pertenece el mensaje del usuario?",
     "urgencia": "¿Qué tan urgente es atender el mensaje del usuario?",
