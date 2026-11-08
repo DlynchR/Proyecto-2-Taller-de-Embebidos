@@ -71,6 +71,7 @@ GitHub del administrador. La configuración Wi-Fi de demostración se versiona; 
 - [Hardware y conexiones](docs/hardware.md)
 - [API HTTP](docs/api.md)
 - [Guion de la demostración y casos de uso](docs/demo.md)
+- Bitácora de desarrollo: [Markdown](docs/bitacora.md) · [PDF](docs/bitacora.pdf)
 
 ## Versiones
 
