@@ -30,14 +30,14 @@ KEYWORDS = {
                         "contrasena", "usuario", "osciloscopio", "senal", "software", "laptop", "conecto"],
     "prestamo_equipo": ["prestamo", "presten", "prestar", "kit", "devolver", "devolucion", "componentes",
                         "multimetro", "herramienta"],
-    "tramite": ["constancia", "reservar", "reserva", "induccion", "horario", "tramite", "beca"],
+    "tramite": ["constancia", "reservar", "reserva", "induccion", "horario", "tramite", "beca", "bitacora"],
     "infraestructura": ["humo", "quemado", "tomacorriente", "fuga", "agua", "aire acondicionado", "luz",
                         "techo", "silla", "mesa rota", "chispa", "ruido"],
 }
 CRITICAL = ["humo", "quemado", "chispa", "fuga", "incendio", "electrico"]
 HIGH = ["practica evaluada", "ninguno", "todo el grupo", "en este momento", "no podemos trabajar"]
 OUT_OF_SCOPE = ["receta", "almuerzo", "futbol", "partido", "pelicula", "chiste", "clima"]
-OFFENSIVE = ["idiota", "inutiles", "porqueria", "estupido", "malditos"]
+OFFENSIVE = ["idiota", "inutiles", "porqueria", "estupido", "maldito", "mierda"]
 SENSITIVE = ["contrasena", "password", "cedula", "clave es", "pin"]
 SELF_SERVICE = ["como me conecto", "como hago", "que ocupo", "como solicito", "quiero reservar", "como puedo"]
 
@@ -74,9 +74,9 @@ def answer(qname: str, q: dict, text: str) -> dict:
         options = list(q.get("criteria", {}).keys())
         scores = {o: 0.2 for o in options}
         for o in options:
-            scores[o] += 2.5 * has(KEYWORDS.get(o, []))
+            scores[o] += 4.0 * has(KEYWORDS.get(o, []))
         if "otro" in scores and max(scores.values()) <= 0.2:
-            scores["otro"] += 1.5
+            scores["otro"] += 3.0
         probs = softmax(scores)
         best = max(probs, key=probs.get)
         return {"type": "choice", "choice": best, "probabilities": {k: round(v, 4) for k, v in probs.items()},

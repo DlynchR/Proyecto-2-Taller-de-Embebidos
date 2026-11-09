@@ -131,12 +131,16 @@ def validate_domain(dominio: dict) -> None:
     niveles = dominio["urgencia"]
     if not 2 <= len(niveles) <= 10:
         raise ValueError("La escala de urgencia debe tener entre 2 y 10 niveles")
-    riesgo = dominio.get("riesgo")
-    if riesgo is not None:
-        if not isinstance(riesgo.get("palabras", []), list):
-            raise ValueError("'riesgo.palabras' debe ser una lista")
-        if riesgo.get("categoria") and riesgo["categoria"] not in cats:
-            raise ValueError(f"'riesgo.categoria' no existe: {riesgo['categoria']}")
+    for regla in ("riesgo", "emergencia"):
+        r = dominio.get(regla)
+        if r is None:
+            continue
+        if not isinstance(r.get("palabras", []), list):
+            raise ValueError(f"'{regla}.palabras' debe ser una lista")
+        if r.get("categoria") and r["categoria"] not in cats:
+            raise ValueError(f"'{regla}.categoria' no existe: {r['categoria']}")
+        if r.get("plantilla") and r["plantilla"] not in dominio["plantillas"]:
+            raise ValueError(f"'{regla}.plantilla' no existe en 'plantillas': {r['plantilla']}")
 
 
 def load_config(path: str | None = None) -> Config:

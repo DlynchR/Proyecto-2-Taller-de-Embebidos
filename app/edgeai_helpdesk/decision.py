@@ -42,6 +42,8 @@ class Decision:
     riesgo: bool = False
     usar_llm: bool = True
     motivo: str = ""
+    # Clave de 'plantillas' con la respuesta fija (riesgo/emergencia); vacía = redacta el LLM.
+    plantilla: str = ""
     latencia_ms: float = 0.0
     modelo: str = ""
     raw: dict = field(default_factory=dict)
@@ -158,31 +160,34 @@ def _normalize(texto: str) -> str:
     return "".join(c for c in texto if unicodedata.category(c) != "Mn")
 
 
-def detect_risk(texto: str, dominio: dict) -> bool:
-    """Regla determinista de seguridad: palabras de riesgo físico (humo, chispas...)."""
-    palabras = (dominio.get("riesgo") or {}).get("palabras") or []
+def detect_risk(texto: str, dominio: dict, regla: str = "riesgo") -> bool:
+    """Regla determinista: palabras de 'riesgo' (humo, chispas...) o de 'emergencia' (armas, desmayos...)."""
+    palabras = (dominio.get(regla) or {}).get("palabras") or []
     if not texto or not palabras:
         return False
     norm = _normalize(texto)
     return any(re.search(rf"\b{re.escape(_normalize(p))}\b", norm) for p in palabras)
 
 
-def apply_risk(decision: Decision, dominio: dict) -> Decision:
-    """Marca el riesgo: urgencia máxima y la categoría de riesgo (si existe)."""
-    riesgo = dominio.get("riesgo") or {}
+def apply_risk(decision: Decision, dominio: dict, regla: str = "riesgo") -> Decision:
+    """Marca el riesgo: urgencia máxima, la categoría de la regla y su respuesta fija (si existen)."""
+    r = dominio.get(regla) or {}
     max_nivel = len(dominio["urgencia"]) - 1
     decision.riesgo = True
     decision.urgencia_nivel = max_nivel
     decision.urgencia_score = max(decision.urgencia_score, float(max_nivel))
-    categoria = riesgo.get("categoria")
+    categoria = r.get("categoria")
     if categoria in dominio["categorias"]:
         decision.categoria = categoria
+    plantilla = r.get("plantilla", "")
+    decision.plantilla = plantilla if plantilla in dominio["plantillas"] else ""
     return decision
 
 
 def _reject(decision: Decision) -> Decision:
     decision.estado = RECHAZADO
     decision.usar_llm = False
+    decision.plantilla = ""
     decision.motivo = "Contenido no apropiado"
     return decision
 
@@ -194,13 +199,17 @@ def apply_policy(decision: Decision, cfg: Config, texto: str = "") -> Decision:
     niveles = len(dominio["urgencia"])
     cortes = parse_cuts(pol.cortes_urgencia, niveles)
     decision.urgencia_nivel = urgency_level(decision.urgencia_score, cortes, niveles)
-    if detect_risk(texto, dominio):
+    emergencia = detect_risk(texto, dominio, "emergencia")
+    if emergencia:
+        apply_risk(decision, dominio, "emergencia")
+    elif detect_risk(texto, dominio):
         apply_risk(decision, dominio)
 
-    # Claramente ofensivo: se rechaza siempre.
-    if decision.apropiado < pol.umbral_ofensivo:
+    # Claramente ofensivo: se rechaza siempre, salvo una emergencia (armas, heridos):
+    # quien la reporta puede estar alterado y el aviso no se puede perder.
+    if decision.apropiado < pol.umbral_ofensivo and not emergencia:
         return _reject(decision)
-    # Un riesgo físico en el laboratorio nunca se descarta como fuera de alcance.
+    # Un riesgo o una emergencia nunca se descartan como fuera de alcance.
     if decision.en_alcance < pol.umbral_alcance and not decision.riesgo:
         decision.estado = FUERA_ALCANCE
         decision.usar_llm = False
@@ -209,11 +218,16 @@ def apply_policy(decision: Decision, cfg: Config, texto: str = "") -> Decision:
     # Dudoso (entre umbral_ofensivo y umbral_apropiado): el modelo también baja
     # 'apropiado' en preguntas ajenas (p. ej. una receta), por eso se decide después
     # del alcance; si está en alcance y no es claramente apropiado, se rechaza.
-    if decision.apropiado < pol.umbral_apropiado:
+    # Un riesgo no se rechaza aquí: el modelo baja 'apropiado' cuando el mensaje
+    # menciona fuego o armas, aunque sea un aviso legítimo.
+    if decision.apropiado < pol.umbral_apropiado and not decision.riesgo:
         return _reject(decision)
 
-    decision.usar_llm = True
-    if decision.riesgo:
+    # Con respuesta fija (riesgo/emergencia) no se espera al LLM.
+    decision.usar_llm = not decision.plantilla
+    if emergencia:
+        decision.motivo = "Emergencia de seguridad o salud: atender de inmediato"
+    elif decision.riesgo:
         decision.motivo = "Riesgo para personas o equipos: atender de inmediato"
     elif decision.categoria == SIN_CLASIFICAR or decision.categoria_conf < pol.umbral_confianza:
         decision.revision_manual = True

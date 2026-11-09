@@ -76,7 +76,11 @@ class HelpdeskService:
 
         decision: Decision = self.decider.decide_safe(texto)
         plantillas = self.cfg.dominio["plantillas"]
-        if decision.usar_llm:
+        if decision.plantilla:
+            # Riesgo o emergencia: instrucciones de seguridad fijas, sin esperar al LLM.
+            respuesta = plantillas[decision.plantilla]
+            ticket_id = self.store.create(texto, decision, nombre, contacto, respuesta, LISTA)
+        elif decision.usar_llm:
             ticket_id = self.store.create(texto, decision, nombre, contacto)
             self._jobs.put(ticket_id)
         else:
